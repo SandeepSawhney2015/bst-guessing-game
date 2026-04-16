@@ -1,7 +1,15 @@
 #ifndef BST_HPP
 #define BST_HPP
+#include <string>
 
-class UnknownValueException {};
+class UnknownValueException {
+    public:
+        std::string getMessage() const{
+            return message;
+        }
+    private:
+        std::string message = "Node doesnt exist";
+};
 
 template <typename T>
 class BST {
