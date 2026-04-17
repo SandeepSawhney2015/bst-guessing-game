@@ -112,5 +112,8 @@ int main(){
         cout << "automatically ended game due to exception :(" << endl;
     } catch (UnopenableFile& e){
         e.getMessage();
+    } catch (UnknownValueException &e){
+        e.getMessage();
+        cout << "Don't BS the game by going outside of the bounds :angry:" << endl;
     }
 }
