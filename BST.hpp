@@ -11,6 +11,15 @@ class UnknownValueException {
         std::string message = "Node doesnt exist";
 };
 
+class UserTryingBSGame { 
+    public:
+        std::string getMessage() const{
+            return message;
+        }
+    private:
+        std::string message = "Don't BS the game :)";
+};
+
 template <typename T>
 class BST {
     private:
@@ -92,7 +101,7 @@ class BST {
             current = root;
         }
 
-        T get_current(){
+        T get_current() const{
             if(!current) {
                 throw UnknownValueException();
             }
@@ -117,6 +126,12 @@ class BST {
 
         void reset(){
             current = root;
+        }
+
+        void check_user(const T& value, const std::string& response){
+            if(current->datum == value and response == "n"){
+                throw UserTryingBSGame();
+            }
         }
 };
 
