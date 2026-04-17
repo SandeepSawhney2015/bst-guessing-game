@@ -6,11 +6,31 @@
 
 using namespace std;
 
-class EndGame {};
+class EndGame {
+    public:
+        void getMessage(){
+            cout << message << endl;
+        }
+    private:
+        string message = "Automatically ended game due to caught exception.";
+};
 
-pair<map<int, int>, int> gather_data(){
+class UnopenableFile {
+    public:
+        UnopenableFile(string filename) : file_in(filename) {} 
+        void getMessage(){
+            cout << "Unable to open db file: " << file_in << endl; 
+        }
+    private:
+        string file_in;
+};
+
+pair<map<int, int>, int> gather_data(string filename){
     map<int, int> freq;
-    ifstream file("data.txt");
+    ifstream file(filename);
+    if(!file){
+        throw UnopenableFile(filename);
+    }
     int number, count;
     int total = 0;
     while(file >> number >> count){
@@ -83,12 +103,14 @@ void rebuild_db(const map<int, int>& freq){
 
 int main(){
     try {
-        auto read = gather_data();
+        auto read = gather_data("data.txt");
         BST<int> tree(create_root(read.first, read.second));
         tree.build_around_root(1,100);
         play_game(read.first, tree);
         rebuild_db(read.first);
     } catch (EndGame& e){
         cout << "automatically ended game due to exception :(" << endl;
+    } catch (UnopenableFile& e){
+        e.getMessage();
     }
 }
