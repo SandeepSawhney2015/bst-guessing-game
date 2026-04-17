@@ -42,7 +42,7 @@ Three custom exception classes handle distinct failure modes:
 **`UnknownValueException`** (defined in `BST.hpp`)
 - Thrown by `get_current()` when `current` is `nullptr` — i.e., traversal walked off the end of the tree
 - This can happen if the user gives contradictory less/greater answers that lead into a null subtree
-- Not explicitly caught in `main`; propagates up and terminates the program with an unhandled exception message
+- Caught in `main`'s outer `try/catch`, which prints the out-of-bounds message
 
 **`UserTryingBSGame`** (defined in `BST.hpp`)
 - Thrown by `check_user()` when the computer's current node already holds the user's number, but the user answers "n" (lying)
@@ -63,10 +63,12 @@ main()
 ├── try
 │   ├── gather_data()        → throws UnopenableFile if file missing
 │   └── play_game()
+│       ├── get_current()    → throws UnknownValueException if off end of tree
 │       └── check_user()     → throws UserTryingBSGame if user lies
 │           └── caught in play_game → throws EndGame
-├── catch (EndGame)          → prints abort message
-└── catch (UnopenableFile)   → prints filename error
+├── catch (EndGame)              → prints abort message
+├── catch (UnopenableFile)       → prints filename error
+└── catch (UnknownValueException)→ prints out-of-bounds message
 ```
 
 ---
@@ -150,6 +152,36 @@ automatically ended game due to exception :(
 ```
 
 The computer reached 42, the player's actual number. Answering "n" triggers `check_user()` to throw `UserTryingBSGame`, which is caught in `play_game()`, which then throws `EndGame`, aborting the session.
+
+### Off-the-tree traversal (`UnknownValueException`)
+
+The player claims their number is 2, but at leaf node 1 (which has no left child) gives direction `l`, walking `current` off the tree:
+
+```
+What is your guess (a number between 1 and 100 inclusive)? 2
+
+Is your answer 50? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 25? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 12? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 6? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 3? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 1? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Don't BS the game by going outside of the bounds :angry:
+```
+
+Node 1 is a leaf — it has no left child. `go_left()` sets `current` to `nullptr`, and the next call to `get_current()` throws `UnknownValueException`. Because node 1 ≠ 2, `check_user()` does not fire first. The exception propagates to `main`'s outer catch block, which prints the out-of-bounds message.
 
 After each session, `data.txt` is updated so future runs reflect the new guess history.
 
