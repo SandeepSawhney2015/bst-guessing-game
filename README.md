@@ -36,9 +36,38 @@ What makes it interesting: the root of the BST is not always 50. The program rea
 - That median becomes the BST root — the tree self-optimizes toward real user behavior
 
 ### Exception Handling
-- `UnknownValueException` — thrown when traversal falls off the tree
-- `UserTryingBSGame` — anti-cheat: detects if a player says "no" when the computer already landed on their number
-- `UnopenableFile` — handles missing or corrupt database file
+
+Three custom exception classes handle distinct failure modes:
+
+**`UnknownValueException`** (defined in `BST.hpp`)
+- Thrown by `get_current()` when `current` is `nullptr` — i.e., traversal walked off the end of the tree
+- This can happen if the user gives contradictory less/greater answers that lead into a null subtree
+- Not explicitly caught in `main`; propagates up and terminates the program with an unhandled exception message
+
+**`UserTryingBSGame`** (defined in `BST.hpp`)
+- Thrown by `check_user()` when the computer's current node already holds the user's number, but the user answers "n" (lying)
+- Caught in `play_game()`, which prints the anti-cheat message, then throws `EndGame` to abort the session cleanly
+
+**`UnopenableFile`** (defined in `BST_driver.cpp`)
+- Thrown by `gather_data()` when `ifstream` fails to open `data.txt`
+- Caught in `main`'s outer `try/catch`, which calls `getMessage()` to print the filename that couldn't be opened
+
+**`EndGame`** (defined in `BST_driver.cpp`)
+- Not thrown directly by a tree error — it's a sentinel used to propagate a mid-game abort up to `main`
+- Thrown inside the `UserTryingBSGame` catch block in `play_game()`, then caught by `main`
+
+**Flow summary:**
+
+```
+main()
+├── try
+│   ├── gather_data()        → throws UnopenableFile if file missing
+│   └── play_game()
+│       └── check_user()     → throws UserTryingBSGame if user lies
+│           └── caught in play_game → throws EndGame
+├── catch (EndGame)          → prints abort message
+└── catch (UnopenableFile)   → prints filename error
+```
 
 ---
 
@@ -67,6 +96,8 @@ g++ -std=c++17 BST_driver.cpp -o bst-guessing-game
 
 ## Example Session
 
+### Normal game (number: 73)
+
 ```
 What is your guess (a number between 1 and 100 inclusive)? 73
 
@@ -89,6 +120,36 @@ Is your answer 73? (y/n) y
 
 Your number was 73
 ```
+
+### Anti-cheat triggered (`UserTryingBSGame`)
+
+The computer has already landed on the player's number (42), but the player answers "n" trying to trick it:
+
+```
+What is your guess (a number between 1 and 100 inclusive)? 42
+
+Is your answer 50? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 25? (y/n) n
+Was your answer less or greater? (l/g) g
+
+Is your answer 37? (y/n) n
+Was your answer less or greater? (l/g) g
+
+Is your answer 43? (y/n) n
+Was your answer less or greater? (l/g) l
+
+Is your answer 40? (y/n) n
+Was your answer less or greater? (l/g) g
+
+Is your answer 42? (y/n) n
+
+Don't BS the game :)
+automatically ended game due to exception :(
+```
+
+The computer reached 42, the player's actual number. Answering "n" triggers `check_user()` to throw `UserTryingBSGame`, which is caught in `play_game()`, which then throws `EndGame`, aborting the session.
 
 After each session, `data.txt` is updated so future runs reflect the new guess history.
 
