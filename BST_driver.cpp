@@ -89,7 +89,12 @@ void play_game(map<int, int>& freq, BST<int>& tree){
             current_guess = tree.get_current();
         } 
         if(answer == "y"){
-            tree.check_user(user_guess, answer);
+            try {
+                tree.check_user(user_guess, answer);
+            } catch (UserTryingBSGame& e){
+                cout << e.getMessage() << endl;
+                throw EndGame();
+            }
         }
     }
     cout << "Your number was " << current_guess;
