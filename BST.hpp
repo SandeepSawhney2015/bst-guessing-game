@@ -132,6 +132,9 @@ class BST {
             if(current->datum == value and response == "n"){
                 throw UserTryingBSGame();
             }
+            if(current->datum != value and response == "y"){
+                throw UserTryingBSGame();
+            }
         }
 };
 

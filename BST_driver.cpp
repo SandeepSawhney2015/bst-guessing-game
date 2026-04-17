@@ -88,6 +88,9 @@ void play_game(map<int, int>& freq, BST<int>& tree){
             }
             current_guess = tree.get_current();
         } 
+        if(answer == "y"){
+            
+        }
     }
     cout << "Your number was " << current_guess;
     cout << endl;
